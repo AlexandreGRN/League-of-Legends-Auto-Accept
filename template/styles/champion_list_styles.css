@@ -1,0 +1,40 @@
+.champion_list {
+    display:flex;
+    position: absolute;
+    top: max(10%, 50px);
+    left: max(110px, 16%);
+    right: 9%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    overflow-y: scroll;
+    height: 90%;
+}
+
+.champion {
+    width: auto;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+    flex-direction: column;
+    flex-wrap: wrap;
+}
+
+.champion img {
+    width: 100px;
+    height: 100px;
+}
+
+.selected {
+    display: flex;
+    position: absolute;
+    width: max(9%, 130px);
+    height: auto;
+    top: max(10%, 50px);
+    bottom: 0;
+    right: 0;
+    border-left: 3px solid black;
+    flex-direction: column;
+    overflow-y: scroll;
+}
