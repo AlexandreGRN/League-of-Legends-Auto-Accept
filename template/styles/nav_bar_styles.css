@@ -1,0 +1,50 @@
+body {
+    font-family: "Lato", sans-serif;
+  }
+
+.navigation_bar{
+    width: 15%;
+    height: 100%;
+    min-width: 100px;
+    background-color: #000;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: aliceblue;
+    z-index: 2;
+}
+
+.top_nav_tab_list{
+    position: absolute;
+    top: 0;
+}
+
+.mid_nav_tab_list{
+    position: absolute;
+    top: 20%;
+}
+
+.end_nav_tab_list{
+    position: absolute;
+    bottom: 0;
+}
+
+.nav_tab{
+    font-size: 20px;
+    width: 100%;
+    height: 75px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: aliceblue;
+    transition: all 0.3s ease-in-out;
+}
+
+.nav_tab:hover{
+    color: aqua;
+    transition: all 0.3s ease-in-out;
+}
