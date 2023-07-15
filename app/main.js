@@ -1,53 +1,27 @@
 // Import
-
 const {app, BrowserWindow, ipcMain, ipcRenderer, webContents} = require("electron");
 const path = require("path");
 const axios = require("axios");
 
 // Create the champion list
 var championList = [];
-async function getChampionsList() {
-    var a = await axios.get('https://ddragon.leagueoflegends.com/cdn/13.13.1/data/en_US/champion.json');
-    return a.data.data;
-};
-async function getChampionImageUrl(ChampName){
-    var a = await axios.get('https://ddragon.leagueoflegends.com/cdn/13.13.1/img/champion/' + ChampName + '.png');
-    return a.config.url;
-};
-async function getChampionNames() {
-    var championList = await getChampionsList();
-    var championNames = [];
-    for (i in championList) {
-        championNames.push(i);
-    };
-    return championNames;
-  
-};
-async function makeChampionInfosList() {
-    var championsNamesList = await getChampionNames();
-    var championsInfos = [];
-    for (i in championsNamesList) {
-        championsInfos.push({championName: championsNamesList[i], championImageUrl: await getChampionImageUrl(championsNamesList[i]), favorite: false});
-    };
-    return championsInfos;
-};
-// --- End of champion list creation
-
+var selectedChampionList = [];
 
 // Misc functions
 async function prepareApp() {
     createWindow("../template/loading.html");
-    championList = await makeChampionInfosList();
-    currentWindow.loadFile("../template/pick.html");
     currentWindow.webContents.on('did-finish-load', () => {
-        currentWindow.webContents.send('championList', championList);
+        currentWindow.webContents.send('championListLoading', championList);
     });
 };
 
-async function championListBridge(){
-    return championList;
+async function finishLoading() {
+    currentWindow.loadFile("../template/pick.html");
+    currentWindow.webContents.on('did-finish-load', () => {
+        currentWindow.webContents.send('championList', championList);
+        currentWindow.webContents.send("selectedChampionList", [{championName: 'Aatrox_selected', championImageUrl: 'https://ddragon.leagueoflegends.com/cdn/13.13.1/img/champion/Aatrox.png'},{championName: 'Cassiopeia_selected',championImageUrl: 'https://ddragon.leagueoflegends.com/cdn/13.13.1/img/champion/Cassiopeia.png'},{championName: 'Caitlyn_selected',championImageUrl: 'https://ddragon.leagueoflegends.com/cdn/13.13.1/img/champion/Caitlyn.png'}]);
+    });
 };
-
 
 // BASICS WINDOWS FUNCTIONS
 // main window template
@@ -63,9 +37,7 @@ function createWindow (htmlFile) {
             contextIsolation: true,
             enableRemoteModule: true,
             preload: path.join(__dirname, "preload.js")
-        },
-        frame: false,
-        resizable: false
+        }
     });
     currentWindow.loadFile(htmlFile);
 };
@@ -90,6 +62,16 @@ app.on("window-all-closed", () => {
 
 // IPC COMMUNICATION
 // IPC champion-clicked
-ipcMain.handle("champion-clicked", async (event, championName) => {
-    console.log(championName);
+ipcMain.handle("champion-clicked", async (event, championInfo) => {
+    selectedChampionList.push(championInfo);
+});
+
+ipcMain.handle("champion-clicked_remove", async (event, championInfo) => {
+    console.log(championInfo);
+});
+
+// IPC championListLoadingResult
+ipcMain.on("championListLoadingResult", (event, championListFinish) => {
+    championList = championListFinish;
+    finishLoading();
 });

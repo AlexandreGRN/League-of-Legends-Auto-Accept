@@ -8,9 +8,6 @@
   },
   "author": "Tulkiidra",
   "license": "ISC",
-  "devDependencies": {
-    "electron": "^25.3.0"
-  },
   "dependencies": {
     "axios": "^1.4.0",
     "boolean": "^3.2.0",
@@ -74,5 +71,8 @@
     "wrappy": "^1.0.2",
     "yallist": "^4.0.0",
     "yauzl": "^2.10.0"
+  },
+  "devDependencies": {
+    "electron": "^25.3.0"
   }
 }
