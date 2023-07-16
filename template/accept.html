@@ -6,8 +6,34 @@
     <title>Document</title>
     <link rel="stylesheet" href="./styles/nav_bar_styles.css">
     <link rel="stylesheet" href="./styles/tool_bar_styles.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
     <style>
-        
+        .accept_logo{
+            display:flex;
+            position: absolute;
+            top: max(10%, 50px);
+            left: max(110px, 16%);
+            right: max(9%, 130px);
+            flex-direction: row;
+            flex-wrap: wrap;
+            overflow-y: scroll;
+            height: 90%;
+        }
+
+        .accept {
+            display:flex;
+            position: absolute;
+            top: max(12%, 80px);
+            left: max(110px, 16%);
+            right: max(9%, 130px);
+            flex-direction: row;
+            flex-wrap: wrap;
+            overflow-y: scroll;
+            height: 80%;
+            background-color: red;
+        }
     </style>
 </head>
 <body>
@@ -36,5 +62,12 @@
             <div class="search_tab toolbar_tab"><input type="text" placeholder="Search.."></div>
         </div>
     </div>
+
+    <div class="accept_logo">
+        hello
+    </div>
+
+    <div class="accept">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa</div>
+    <script src="./scripts/accept_script.js"></script>
 </body>
 </html>
