@@ -6,9 +6,10 @@
     <title>Document</title>
     <link rel="stylesheet" href="./styles/nav_bar_styles.css">
     <link rel="stylesheet" href="./styles/tool_bar_styles.css">
-    <style>
-        
-    </style>
+    <link rel="stylesheet" href="./styles/check_button_styles.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
 </head>
 <body>
     <div class="navigation_bar">
@@ -17,6 +18,10 @@
         </div>
         <div class="mid_nav_tab_list">
             <div class="accept_tab nav_tab">Accept</div>
+            <label class="switch accept">
+                <input type="checkbox">
+                <span class="slider round"></span>
+              </label>
             <div class="pick_tab nav_tab">Pick</div>
             <div class="ban_tab nav_tab">Ban</div>
         </div>
@@ -36,5 +41,8 @@
             <div class="search_tab toolbar_tab"><input type="text" placeholder="Search.."></div>
         </div>
     </div>
+
+    
+    <script src="./scripts/accept_script.js"></script>
 </body>
 </html>

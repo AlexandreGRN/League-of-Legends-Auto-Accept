@@ -3,7 +3,7 @@
     position: absolute;
     top: max(10%, 50px);
     left: max(110px, 16%);
-    right: 9%;
+    right: max(9%, 130px);
     flex-direction: row;
     flex-wrap: wrap;
     overflow-y: scroll;
@@ -26,7 +26,7 @@
     height: 100px;
 }
 
-.selected {
+.selected_champion_list {
     display: flex;
     position: absolute;
     width: max(9%, 130px);
