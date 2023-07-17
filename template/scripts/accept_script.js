@@ -1,28 +1,22 @@
-InGame = false;
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 async function makeRequest() {
-    while (!InGame) {
-        ipcRenderer.invoke("checkForMatchAccept");
-        await sleep(2000);
-    }
+    ipcRenderer.invoke("checkForMatchAccept");
 }
 
 $(document).ready(function() {
-    $(".accept").click(function() {
-        if ($(".accept").css("background-color") == "rgb(255, 0, 0)") {
-            makeRequest();
-            $(".accept").css("background-color","rgb(0, 255, 0)");
-        } else {
-            makeRequest();
-            $(".accept").css("background-color","rgb(255, 0, 0)");
-        }
+    $(".accept").change(function() {
+        ipcRenderer.invoke("matchAcceptBinary");
+        makeRequest();
     });
-    $(".accept").click(function() {
-        ipcRenderer.send("matchAccept");
+});
+
+$(document).ready(function() {
+    $(".accept_tab").click(function() {
+        ipcRenderer.invoke("changeWindow", "accept");
     });
-    makeRequest();
+    $(".pick_tab").click(function() {
+        ipcRenderer.invoke("changeWindow", "pick");
+    });
+    $(".ban_tab").click(function() {
+        ipcRenderer.invoke("changeWindow", "ban");
+    });
 });

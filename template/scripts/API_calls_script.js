@@ -26,7 +26,7 @@ async function makeChampionInfosList() {
     return championsInfos;
 };
 
-ipcRenderer.on('championListLoading', async (data) => {
+$(document).ready(async function() {
     championList = await makeChampionInfosList();
     ipcRenderer.send('championListLoadingResult', championList);
 });
