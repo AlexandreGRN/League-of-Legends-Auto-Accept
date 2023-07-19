@@ -29,14 +29,16 @@ async function makeChampionCard() {
 // Make the champion card of all the character selected
 async function makeSelectedChampionCard(){
     for (i in selectedChampionList) {
-        champName = championList[i].championName;
-        champURL = championList[i].championImageUrl;
-        champCard = "<div id='" + champName + "_selected" + "' class='champion'><img src='" + champURL + "'><p>" + champName + "</p></div>"
-        $(".selected_champion_list").append(champCard);
-        $("#" + champName + "_selected").click(function(){
-            ipcRenderer.invoke("champion-clicked_remove", {championName: $(this).attr("id"), championImageUrl: $(this).children("img").attr("src")});
-            $(this).remove();
-        });
+        champName = selectedChampionList[i].championName;
+        champURL = selectedChampionList[i].championImageUrl;
+        if ($("#" + champName + "_selected").length == 0) {
+            champCard = "<div id='" + champName + "_selected" + "' class='champion'><img src='" + champURL + "'><p>" + champName + "</p></div>"
+            $(".selected_champion_list").append(champCard);
+            $("#" + champName + "_selected").click(function(){
+                ipcRenderer.invoke("champion-clicked_remove", {championName: $(this).attr("id"), championImageUrl: $(this).children("img").attr("src")});
+                $(this).remove();
+            });
+        };
     };
 }
 
@@ -44,15 +46,32 @@ async function makeSelectedChampionCard(){
 $(document).ready(async function(){
     // Get all champions from the database
     // Then make the champion card
+    $(".pick").change(function() {
+        ipcRenderer.invoke("matchPickBinary");
+    });
+
     ipcRenderer.on('championList', (data) => {
         championList = data;
         makeChampionCard();
     });
     // Then make the selected champion card
-    ipcRenderer.on('selectedChampionList', (data) => {
+    ipcRenderer.on('selectedPickChampionList', (data) => {
         selectedChampionList = data;
         makeSelectedChampionCard();
     });
+
+
 });
 
 
+$(document).ready(function() {
+    $(".accept_tab").click(function() {
+        ipcRenderer.invoke("changeWindow", "accept");
+    });
+    $(".pick_tab").click(function() {
+        ipcRenderer.invoke("changeWindow", "pick");
+    });
+    $(".ban_tab").click(function() {
+        ipcRenderer.invoke("changeWindow", "ban");
+    });
+});
