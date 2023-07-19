@@ -47,7 +47,7 @@ $(document).ready(async function(){
     // Get all champions from the database
     // Then make the champion card
     $(".pick").change(function() {
-        ipcRenderer.invoke("matchPickStart");
+        ipcRenderer.invoke("matchPickBinary");
     });
 
     ipcRenderer.on('championList', (data) => {

@@ -40,7 +40,7 @@ async function request(url, method, body = "") {
                 }).then((response) => {
                     resolve(response.data);
                 }).catch((error) => {
-                    resolve()
+                    resolve(undefined)
                 });
             } else if (method == "POST") {
                 axios.post(`${baseURL}`, '', {
@@ -49,7 +49,7 @@ async function request(url, method, body = "") {
                 }).then((response) => {
                     resolve(response.data);
                 }).catch((error) => {
-                    resolve()
+                    resolve(undefined)
                 });
             } else if (method == "PATCH"){
                 axios.patch(`${baseURL}`, body, {
@@ -58,7 +58,7 @@ async function request(url, method, body = "") {
                 }).then((response) => {
                     resolve(response.data);
                 }).catch((error) => {
-                    console.log(error);
+                    resolve(undefined)
                 });
             }
         });
@@ -85,9 +85,9 @@ function createWindow (htmlFile) {
 app.whenReady().then(async () => {
     // Create the window
     response = await request("/lol-summoner/v1/current-summoner", "GET").then((response) => {
+        if (response == undefined){return 0;}
         PUUID = response.summonerId;
-    });
-    
+    });    
     createWindow("../template/loading.html");
     // MacOS Requirements (Needs to create the window again if necessary)
     app.on("activate", () => {
@@ -118,6 +118,7 @@ ipcMain.handle("changeWindow", async (event, data) => {
 // -------------------- LOADING --------------------
 ipcMain.handle("loadingChampions", async (event, championList) => {
     response = await request(`/lol-champions/v1/inventories/${PUUID}/champions-minimal`, "GET");
+    if (response == undefined) {return 0;}
     response.sort((a, b) => a.alias.localeCompare(b.alias));
     for (i in response) {
         for (j in championList) {
@@ -133,13 +134,14 @@ ipcMain.handle("loadingFinished", (event, championListFinish) => {
 ipcMain.handle("checkStatus", async (event) => {
     while(status != "InProgress") {
         status = await request("/lol-gameflow/v1/gameflow-phase", "GET")
+        if (status == undefined) {return 0;}
         if (status == "ReadyCheck" && AutoAccept) {
             request("/lol-lobby-team-builder/v1/ready-check/accept", "POST");
         };
-        await sleep(5000);
         if (status == "ChampSelect" && AutoPick) {
             inChampSelect();
         }
+        await sleep(2000);
     }
 });
 
@@ -163,7 +165,6 @@ async function loadingPick(){
     });
 };
 
-
 // Ipc communications
 ipcMain.handle("champion-clicked", async (event, championInfo) => {
     selectedPickChampionList.push(championInfo);
@@ -175,12 +176,13 @@ ipcMain.handle("champion-clicked_remove", async (event, championInfo) => {
         };
     }
 });
-ipcMain.handle("matchPickStart", async (event) => {
+ipcMain.handle("matchPickBinary", async (event) => {
 });
 
 
 // Champ Select Functions
 
+// Create Variables
 async function pickChampionIds (bans) {
     return new Promise((resolve, reject) => {
         pickTargetIds = [];
@@ -199,11 +201,9 @@ async function pickChampionIds (bans) {
         resolve(0);
     });
 }
-
 async function bannableChampions () {
     response = await request("/lol-champ-select/v1/bannable-champion-ids", "GET");
 }
-
 async function getPersonalActions (actions, cellId) {
     var personalActions = [];
     for (i in actions) {
@@ -215,7 +215,19 @@ async function getPersonalActions (actions, cellId) {
     }
     return personalActions;
 }
+async function getBans (bans) {
+    var bansList = [];
+    for (i in bans) {
+        if (Array.isArray(bans[i])) {
+            for (j in bans[i]) {
+                bansList.push(bans[i][j]);
+            }
+        }
+    }
+    return bansList;
+}
 
+// Make body requests
 async function makeBanRequestBody (action, championId=1) {
     requestBody = {
         "actorCellId": action.actorCellId,
@@ -227,7 +239,6 @@ async function makeBanRequestBody (action, championId=1) {
     };
     return requestBody;
 }
-
 async function makePickRequestBody (action, championId) {
     requestBody = {
         "actorCellId": action.actorCellId,
@@ -241,38 +252,30 @@ async function makePickRequestBody (action, championId) {
 }
 
 async function inChampSelect () {
-    // Get the status of the player
+    //Get infos
     response = await request("/lol-champ-select/v1/session", "GET");
-    if (response.actions.length != 0) {
-        var actions = response.actions;
-        var cellId = response.localPlayerCellId;
-        var personalActions = []
-        var bans = []
-        for (i in response.bans) {
-            if (Array.isArray(response.bans[i])) {
-                for (j in response.bans[i]) {
-                    bans.push(response.bans[i][j]);
-                }
+    if (response.actions.length == 0) {return 0;}
+    //Variables
+    var actions = response.actions;
+    var cellId = response.localPlayerCellId;
+    var personalActions = await getPersonalActions(actions, cellId);
+    var bans = await getBans(response.bans);
+    for (i in personalActions) {
+        // Ban phase
+        /*if ((personalActions[i].type == "ban" && personalActions[i].completed == false)) {
+            requestBody = await makeBanRequestBody(personalActions[i])
+            await request("/lol-champ-select/v1/session/actions/" + personalActions[i].id, "PATCH", requestBody);
+        }*/
+
+        // Pick phase
+        if (personalActions[i].type == "pick" && personalActions[i].completed == false) {
+            var action = personalActions[i];
+            var pickChampionId = await pickChampionIds(bans);
+            if (pickChampionId == 0 && pickChampionId == undefined) {return 0;}
+            requestBody = await makePickRequestBody(action, pickChampionId).catch((error) => {console.log(error);return 0});
+            if (requestBody != 0) {
+                await request("/lol-champ-select/v1/session/actions/" + action.id, "PATCH", requestBody).catch((error) => {return 0});
             }
         }
-        personalActions = await getPersonalActions(actions, cellId);
-        for (i in personalActions) {
-            // Ban phase
-            /*if ((personalActions[i].type == "ban" && personalActions[i].completed == false)) {
-                requestBody = await makeBanRequestBody(personalActions[i])
-                await request("/lol-champ-select/v1/session/actions/" + personalActions[i].id, "PATCH", requestBody);
-            }*/
-            // Pick phase
-            if (personalActions[i].type == "pick" && personalActions[i].completed == false) {
-                var action = personalActions[i];
-                var pickChampionId = await pickChampionIds(bans);
-                if (pickChampionId != 0 && pickChampionId != undefined) {
-                    requestBody = await makePickRequestBody(action, pickChampionId).catch((error) => {console.log(error);return 0});
-                    if (requestBody != 0) {
-                        await request("/lol-champ-select/v1/session/actions/" + action.id, "PATCH", requestBody).catch((error) => {return 0});
-                    }
-                }
-            }
-        };
     };
 }
