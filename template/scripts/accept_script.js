@@ -1,7 +1,3 @@
-async function makeRequest() {
-    ipcRenderer.invoke("checkForMatchAccept");
-}
-
 $(document).ready(function() {
     $(".accept").change(function() {
         ipcRenderer.invoke("matchAcceptBinary");

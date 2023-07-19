@@ -21,12 +21,14 @@ async function makeChampionInfosList() {
     var championsNamesList = await getChampionNames();
     var championsInfos = [];
     for (i in championsNamesList) {
-        championsInfos.push({championName: championsNamesList[i], championImageUrl: await getChampionImageUrl(championsNamesList[i]), favorite: false});
+        championsInfos.push({championName: championsNamesList[i], championImageUrl: await getChampionImageUrl(championsNamesList[i])});
     };
     return championsInfos;
 };
 
 $(document).ready(async function() {
     championList = await makeChampionInfosList();
-    ipcRenderer.send('championListLoadingResult', championList);
+    ipcRenderer.invoke("checkStatus");
+    ipcRenderer.invoke("loadingChampions", championList);
+    ipcRenderer.invoke('loadingFinished');
 });

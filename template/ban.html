@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="./styles/nav_bar_styles.css">
     <link rel="stylesheet" href="./styles/tool_bar_styles.css">
     <link rel="stylesheet" href="./styles/champion_list_styles.css">
+    <link rel="stylesheet" href="./styles/check_button_styles.css">
     <script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>  
     
@@ -21,23 +22,24 @@
         </div>
         <div class="mid_nav_tab_list">
             <div class="accept_tab nav_tab">Accept</div>
+            <label class="switch accept">
+                <input type="checkbox">
+                <span class="slider round"></span>
+            </label>
             <div class="pick_tab nav_tab">Pick</div>
+            <label class="switch pick">
+                <input type="checkbox">
+                <span class="slider round"></span>
+            </label>
             <div class="ban_tab nav_tab">Ban</div>
+            <label class="switch ban">
+                <input type="checkbox">
+                <span class="slider round"></span>
+            </label>
         </div>
         <div class="end_nav_tab_list">
             <div class="notification_tab nav_tab">Notification</div>
             <div class="settings_tab nav_tab">Settings</div>
-        </div>
-    </div>
-
-    <div class="toolbar">
-        <div class="left_toolbar_tab_list">
-            <div class="back_tab toolbar_tab">Back</div>
-            <div class="forward_tab toolbar_tab">Forward</div>
-            <div class="refresh_tab toolbar_tab">Refresh</div>
-        </div>
-        <div class="right_toolbar_tab_list">
-            <div class="search_tab toolbar_tab"><input type="text" placeholder="Search.."></div>
         </div>
     </div>
 
