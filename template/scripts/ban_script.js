@@ -15,10 +15,10 @@ async function makeChampionCard() {
         // Champion card click event
         $("#" + champName).click(function(){
             if ($("#" + $(this).attr("id") + "_selected").length == 0) {
-                ipcRenderer.invoke("champion-clicked", {championName: $(this).attr("id"), championImageUrl: $(this).children("img").attr("src")});
+                ipcRenderer.invoke("champion-clicked-ban", {championName: $(this).attr("id"), championImageUrl: $(this).children("img").attr("src")});
                 $(".selected_champion_list").append("<div id='" + $(this).attr("id") + "_selected" + "' class='champion'><img src='" + $(this).children("img").attr("src") + "'><p>" + $(this).attr("id") + "</p></div>");
                 $("#" + $(this).attr("id") + "_selected").click(function(){
-                    ipcRenderer.invoke("champion-clicked-remove", {championName: $(this).attr("id"), championImageUrl: $(this).children("img").attr("src")});
+                    ipcRenderer.invoke("champion-clicked-remove-ban", {championName: $(this).attr("id"), championImageUrl: $(this).children("img").attr("src")});
                     $(this).remove();
                 });
             };
@@ -35,7 +35,7 @@ async function makeSelectedChampionCard(){
             champCard = "<div id='" + champName + "_selected" + "' class='champion'><img src='" + champURL + "'><p>" + champName + "</p></div>"
             $(".selected_champion_list").append(champCard);
             $("#" + champName + "_selected").click(function(){
-                ipcRenderer.invoke("champion-clicked-remove", {championName: $(this).attr("id"), championImageUrl: $(this).children("img").attr("src")});
+                ipcRenderer.invoke("champion-clicked-remove-ban", {championName: $(this).attr("id"), championImageUrl: $(this).children("img").attr("src")});
                 $(this).remove();
             });
         };
@@ -50,12 +50,16 @@ $(document).ready(async function(){
         ipcRenderer.invoke("matchPickBinary");
     });
 
-    ipcRenderer.on('championList', (data) => {
+    $(".ban").change(function() {
+        ipcRenderer.invoke("matchBanBinary");
+    });
+
+    ipcRenderer.on('championListBan', (data) => {
         championList = data;
         makeChampionCard();
     });
     // Then make the selected champion card
-    ipcRenderer.on('selectedPickChampionList', (data) => {
+    ipcRenderer.on('selectedBanChampionList', (data) => {
         selectedChampionList = data;
         makeSelectedChampionCard();
     });
