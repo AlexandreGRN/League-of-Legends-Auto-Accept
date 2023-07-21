@@ -46,10 +46,6 @@ async function makeSelectedChampionCard(){
 $(document).ready(async function(){
     // Get all champions from the database
     // Then make the champion card
-    $(".pick").change(function() {
-        ipcRenderer.invoke("matchPickBinary");
-    });
-
     ipcRenderer.on('championList', (data) => {
         championList = data;
         makeChampionCard();
@@ -65,6 +61,21 @@ $(document).ready(async function(){
 
 
 $(document).ready(function() {
+    ipcRenderer.on("checkBox", (data) => {
+        $('.accept_checkbox').prop("checked", data.AutoAccept);
+        $(".pick_checkbox").prop("checked", data.AutoPick);
+        $(".ban_checkbox").prop("checked", data.AutoBan);
+    });
+    $(".accept").change(function() {
+        ipcRenderer.invoke("matchAcceptBinary");
+        makeRequest();
+    });
+    $(".pick").change(function() {
+        ipcRenderer.invoke("matchPickBinary");
+    });
+    $(".ban").change(function() {
+        ipcRenderer.invoke("matchBanBinary");
+    });
     $(".accept_tab").click(function() {
         ipcRenderer.invoke("changeWindow", "accept");
     });
