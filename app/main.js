@@ -8,9 +8,11 @@ const https = require("https");
 // Variables
 var selectedPickChampionList = [];
 var selectedBanChampionList = [];
-var AutoAccept = false;
+var AutoAccept = true;
 var AutoPick = true;
+var AutoBan = true;
 var AvailableChampionList = [];
+var AllBannableChampionsList = [];
 var PUUID = 0;
 let status;
 let currentWindow;
@@ -71,8 +73,8 @@ function createWindow (htmlFile) {
     // Create the window
     currentWindow = new BrowserWindow({
         title: "Loading",
-        width: 800,
-        height: 600,
+        width: 1500,
+        height: 1000,
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: true,
@@ -104,13 +106,11 @@ app.on("window-all-closed", () => {
 // Change Window
 ipcMain.handle("changeWindow", async (event, data) => {
     if(data == "pick") {
-        console.log("window changed to pick");
         loadingPick();
     } else if (data == "accept") {
-        console.log("window changed to accept");
         loadingAccept();
     } else if (data == "ban") {
-        //loadingBan();
+        loadingBan();
     };
 });
 
@@ -118,6 +118,10 @@ ipcMain.handle("changeWindow", async (event, data) => {
 // -------------------- LOADING --------------------
 ipcMain.handle("loadingChampions", async (event, championList) => {
     response = await request(`/lol-champions/v1/inventories/${PUUID}/champions-minimal`, "GET");
+    responseAll = await request("/lol-champ-select/v1/all-grid-champions", "GET");
+    for (i in responseAll){
+        AllBannableChampionsList.push({championName: responseAll[i].name, lolId: responseAll[i].id});
+    }
     if (response == undefined) {return 0;}
     response.sort((a, b) => a.alias.localeCompare(b.alias));
     for (i in response) {
@@ -138,7 +142,7 @@ ipcMain.handle("checkStatus", async (event) => {
         if (status == "ReadyCheck" && AutoAccept) {
             request("/lol-lobby-team-builder/v1/ready-check/accept", "POST");
         };
-        if (status == "ChampSelect" && AutoPick) {
+        if (status == "ChampSelect" && (AutoPick || AutoBan)) {
             inChampSelect();
         }
         await sleep(2000);
@@ -150,6 +154,9 @@ ipcMain.handle("checkStatus", async (event) => {
 // Prepare the window
 async function loadingAccept() {
     currentWindow.loadFile("../template/accept.html");
+    currentWindow.webContents.on('did-finish-load', () => {
+        currentWindow.webContents.send("checkBox", {AutoAccept: AutoAccept, AutoPick: AutoPick, AutoBan: AutoBan});
+    });
 };
 // Ipc communications
 ipcMain.handle("matchAcceptBinary", async (event) => {
@@ -162,6 +169,7 @@ async function loadingPick(){
     currentWindow.webContents.on('did-finish-load', () => {
         currentWindow.webContents.send('championList', AvailableChampionList);
         currentWindow.webContents.send("selectedPickChampionList", selectedPickChampionList);
+        currentWindow.webContents.send("checkBox", {AutoAccept: AutoAccept, AutoPick: AutoPick, AutoBan: AutoBan});
     });
 };
 
@@ -169,7 +177,7 @@ async function loadingPick(){
 ipcMain.handle("champion-clicked", async (event, championInfo) => {
     selectedPickChampionList.push(championInfo);
 });
-ipcMain.handle("champion-clicked_remove", async (event, championInfo) => {
+ipcMain.handle("champion-clicked-remove", async (event, championInfo) => {
     for (i in selectedPickChampionList) {
         if (selectedPickChampionList[i].championName + "_selected" == championInfo.championName) {
             selectedPickChampionList.splice(i, 1);
@@ -177,8 +185,33 @@ ipcMain.handle("champion-clicked_remove", async (event, championInfo) => {
     }
 });
 ipcMain.handle("matchPickBinary", async (event) => {
+    AutoPick = !AutoPick;
 });
 
+// -------------------- BAN WINDOW --------------------
+async function loadingBan(){
+    currentWindow.loadFile("../template/ban.html");
+    currentWindow.webContents.on('did-finish-load', () => {
+        currentWindow.webContents.send('championListBan', AvailableChampionList);
+        currentWindow.webContents.send("selectedBanChampionList", selectedBanChampionList);
+        currentWindow.webContents.send("checkBox", {AutoAccept: AutoAccept, AutoPick: AutoPick, AutoBan: AutoBan});
+    });
+};
+
+// Ipc communications
+ipcMain.handle("champion-clicked-ban", async (event, championInfo) => {
+    selectedBanChampionList.push(championInfo);
+});
+ipcMain.handle("champion-clicked-remove-ban", async (event, championInfo) => {
+    for (i in selectedBanChampionList) {
+        if (selectedBanChampionList[i].championName + "_selected" == championInfo.championName) {
+            selectedBanChampionList.splice(i, 1);
+        };
+    }
+});
+ipcMain.handle("matchBanBinary", async (event) => {
+    AutoBan = !AutoBan;
+});
 
 // Champ Select Functions
 
@@ -201,9 +234,26 @@ async function pickChampionIds (bans) {
         resolve(0);
     });
 }
-async function bannableChampions () {
-    response = await request("/lol-champ-select/v1/bannable-champion-ids", "GET");
+async function banChampionIds (bans) {
+    return new Promise((resolve, reject) => {
+        if (response == undefined) {return 0;}
+        banTargetIds = [];
+        for (i in selectedBanChampionList) {
+            for (j in AllBannableChampionsList) {
+                if (selectedBanChampionList[i].championName == AllBannableChampionsList[j].championName) {
+                    banTargetIds.push(AllBannableChampionsList[j].lolId);
+                }
+            }
+        }
+        for (i in banTargetIds){
+            if (!bans.includes(banTargetIds[i])) {
+                resolve(banTargetIds[i]);
+            }
+        }
+        resolve(0);
+    });
 }
+
 async function getPersonalActions (actions, cellId) {
     var personalActions = [];
     for (i in actions) {
@@ -262,17 +312,22 @@ async function inChampSelect () {
     var bans = await getBans(response.bans);
     for (i in personalActions) {
         // Ban phase
-        /*if ((personalActions[i].type == "ban" && personalActions[i].completed == false)) {
-            requestBody = await makeBanRequestBody(personalActions[i])
-            await request("/lol-champ-select/v1/session/actions/" + personalActions[i].id, "PATCH", requestBody);
-        }*/
+        if (personalActions[i].type == "ban" && personalActions[i].completed == false && AutoBan) {
+            var action = personalActions[i];
+            var banChampionId = await banChampionIds(bans);
+            if (banChampionId == 0 && banChampionId == undefined) {return 0;}
+            requestBody = await makeBanRequestBody(action, banChampionId).catch((error) => {return 0});
+            if (requestBody != 0) {
+                await request("/lol-champ-select/v1/session/actions/" + action.id, "PATCH", requestBody).catch((error) => {return 0});
+            }
+        }
 
         // Pick phase
-        if (personalActions[i].type == "pick" && personalActions[i].completed == false) {
+        else if (personalActions[i].type == "pick" && personalActions[i].completed == false && AutoPick) {
             var action = personalActions[i];
             var pickChampionId = await pickChampionIds(bans);
             if (pickChampionId == 0 && pickChampionId == undefined) {return 0;}
-            requestBody = await makePickRequestBody(action, pickChampionId).catch((error) => {console.log(error);return 0});
+            requestBody = await makePickRequestBody(action, pickChampionId).catch((error) => {return 0});
             if (requestBody != 0) {
                 await request("/lol-champ-select/v1/session/actions/" + action.id, "PATCH", requestBody).catch((error) => {return 0});
             }
