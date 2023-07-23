@@ -30,16 +30,20 @@ ipcRenderer.on('championListPick', (data) => {
 });
 
 // Search Bar
-$(".search_tab").change(function() {
+$(".search_tab_ET").on("input", function() {
     text = $(".search_tab_ET").val();
-    championListSearch = $(".champion_list_pick").children();
+    searchChampion($(".champion_list_pick").children());
+    searchChampion($(".champion_list_ban").children());
+});
+
+function searchChampion(championListSearch) {
     for (i in championListSearch) {
         if (championListSearch[i].id != undefined) {
-            if (championListSearch[i].id.includes(text)) {
+            if (championListSearch[i].id.toLowerCase().includes(text.toLowerCase())) {
                 $("#" + championListSearch[i].id).css("display", "flex");
             } else {
                 $("#" + championListSearch[i].id).css("display", "none");
             };
         };
     }
-});
+}
