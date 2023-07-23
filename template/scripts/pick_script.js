@@ -1,22 +1,20 @@
 // Variables
-
-var championList = []
-var selectedChampionList = []
+var championListPick = []
 
 // Make the champion card of all the character in the game
-async function makeChampionCard() {
-    for (i in championList) {
+async function makeChampionCardPick() {
+    for (i in championListPick) {
         // Create the champion card
-        champName = championList[i].championName;
-        champURL = championList[i].championImageUrl;
-        champCard = "<div id='" + champName + "' class='champion'><img src='" + champURL + "'><p>" + champName + "</p></div>"
-        $(".champion_list").append(champCard);
+        champName = championListPick[i].championName;
+        champURL = championListPick[i].championImageUrl;
+        champCard = "<div id='" + champName + "_pick" + "' class='champion'><img src='" + champURL + "'><p>" + champName + "</p></div>"
+        $(".champion_list_pick").append(champCard);
 
         // Champion card click event
-        $("#" + champName).click(function(){
+        $("#" + champName + "_pick").click(function(){
             if ($("#" + $(this).attr("id") + "_selected").length == 0) {
                 ipcRenderer.invoke("champion-clicked", {championName: $(this).attr("id"), championImageUrl: $(this).children("img").attr("src")});
-                $(".selected_champion_list").append("<div id='" + $(this).attr("id") + "_selected" + "' class='champion'><img src='" + $(this).children("img").attr("src") + "'><p>" + $(this).attr("id") + "</p></div>");
+                $(".selected_champion_list_pick").append("<div id='" + $(this).attr("id") + "_selected" + "' class='champion'><img src='" + $(this).children("img").attr("src") + "'><p>" + ($(this).attr("id")).split("_")[0] + "</p></div>");
                 $("#" + $(this).attr("id") + "_selected").click(function(){
                     ipcRenderer.invoke("champion-clicked-remove", {championName: $(this).attr("id"), championImageUrl: $(this).children("img").attr("src")});
                     $(this).remove();
@@ -26,63 +24,22 @@ async function makeChampionCard() {
     };
 };
 
-// Make the champion card of all the character selected
-async function makeSelectedChampionCard(){
-    for (i in selectedChampionList) {
-        champName = selectedChampionList[i].championName;
-        champURL = selectedChampionList[i].championImageUrl;
-        if ($("#" + champName + "_selected").length == 0) {
-            champCard = "<div id='" + champName + "_selected" + "' class='champion'><img src='" + champURL + "'><p>" + champName + "</p></div>"
-            $(".selected_champion_list").append(champCard);
-            $("#" + champName + "_selected").click(function(){
-                ipcRenderer.invoke("champion-clicked-remove", {championName: $(this).attr("id"), championImageUrl: $(this).children("img").attr("src")});
-                $(this).remove();
-            });
-        };
-    };
-}
-
-
-$(document).ready(async function(){
-    // Get all champions from the database
-    // Then make the champion card
-    ipcRenderer.on('championList', (data) => {
-        championList = data;
-        makeChampionCard();
-    });
-    // Then make the selected champion card
-    ipcRenderer.on('selectedPickChampionList', (data) => {
-        selectedChampionList = data;
-        makeSelectedChampionCard();
-    });
-
-
+ipcRenderer.on('championListPick', (data) => {
+    championListPick = data;
+    makeChampionCardPick();
 });
 
-
-$(document).ready(function() {
-    ipcRenderer.on("checkBox", (data) => {
-        $('.accept_checkbox').prop("checked", data.AutoAccept);
-        $(".pick_checkbox").prop("checked", data.AutoPick);
-        $(".ban_checkbox").prop("checked", data.AutoBan);
-    });
-    $(".accept").change(function() {
-        ipcRenderer.invoke("matchAcceptBinary");
-        makeRequest();
-    });
-    $(".pick").change(function() {
-        ipcRenderer.invoke("matchPickBinary");
-    });
-    $(".ban").change(function() {
-        ipcRenderer.invoke("matchBanBinary");
-    });
-    $(".accept_tab").click(function() {
-        ipcRenderer.invoke("changeWindow", "accept");
-    });
-    $(".pick_tab").click(function() {
-        ipcRenderer.invoke("changeWindow", "pick");
-    });
-    $(".ban_tab").click(function() {
-        ipcRenderer.invoke("changeWindow", "ban");
-    });
+// Search Bar
+$(".search_tab").change(function() {
+    text = $(".search_tab_ET").val();
+    championListSearch = $(".champion_list_pick").children();
+    for (i in championListSearch) {
+        if (championListSearch[i].id != undefined) {
+            if (championListSearch[i].id.includes(text)) {
+                $("#" + championListSearch[i].id).css("display", "flex");
+            } else {
+                $("#" + championListSearch[i].id).css("display", "none");
+            };
+        };
+    }
 });

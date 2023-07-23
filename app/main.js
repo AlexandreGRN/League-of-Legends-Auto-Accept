@@ -103,34 +103,34 @@ app.on("window-all-closed", () => {
         app.quit();
     };
 });
-// Change Window
-ipcMain.handle("changeWindow", async (event, data) => {
-    if(data == "pick") {
-        loadingPick();
-    } else if (data == "accept") {
-        loadingAccept();
-    } else if (data == "ban") {
-        loadingBan();
-    };
-});
 
+// Ipc communications Binary
+ipcMain.handle("matchAcceptBinary", async (event) => {
+    AutoAccept = !AutoAccept;
+});
+ipcMain.handle("matchPickBinary", async (event) => {
+    AutoPick = !AutoPick;
+});
+ipcMain.handle("matchBanBinary", async (event) => {
+    AutoBan = !AutoBan;
+});
 
 // -------------------- LOADING --------------------
 ipcMain.handle("loadingChampions", async (event, championList) => {
     response = await request(`/lol-champions/v1/inventories/${PUUID}/champions-minimal`, "GET");
-    responseAll = await request("/lol-champ-select/v1/all-grid-champions", "GET");
-    for (i in responseAll){
-        AllBannableChampionsList.push({championName: responseAll[i].name, lolId: responseAll[i].id});
-    }
-    if (response == undefined) {return 0;}
     response.sort((a, b) => a.alias.localeCompare(b.alias));
     for (i in response) {
         for (j in championList) {
-            if (response[i].alias == championList[j].championName && (response[i].purchased != 0 || response[i].freeToPlay)) {
-                AvailableChampionList.push({championName: response[i].alias, isActive: response[i].active, inF2PRotation: response[i].freeToPlay, lolId: response[i].id, championImageUrl: championList[j].championImageUrl});
+            if (response[i].alias == championList[j].championName && response[i].active == true) {
+                AllBannableChampionsList.push({championName: response[i].alias, inF2PRotation: response[i].freeToPlay, lolId: response[i].id, championImageUrl: championList[j].championImageUrl});
+                if (response[i].purchased != 0) {
+                    AvailableChampionList.push({championName: response[i].alias, inF2PRotation: response[i].freeToPlay, lolId: response[i].id, championImageUrl: championList[j].championImageUrl});
+                }
             }
         }
     };
+    currentWindow.webContents.send("championListPick", AvailableChampionList);
+    currentWindow.webContents.send("championListBan", AllBannableChampionsList);
 });
 ipcMain.handle("loadingFinished", (event, championListFinish) => {
     loadingAccept();
@@ -150,30 +150,13 @@ ipcMain.handle("checkStatus", async (event) => {
 });
 
 
-// -------------------- ACCEPT WINDOW --------------------
-// Prepare the window
+// -------------------- ACCEPT TAB --------------------
+// Launch the APP
 async function loadingAccept() {
-    currentWindow.loadFile("../template/accept.html");
-    currentWindow.webContents.on('did-finish-load', () => {
-        currentWindow.webContents.send("checkBox", {AutoAccept: AutoAccept, AutoPick: AutoPick, AutoBan: AutoBan});
-    });
-};
-// Ipc communications
-ipcMain.handle("matchAcceptBinary", async (event) => {
-    AutoAccept = !AutoAccept;
-});
-// -------------------- PICK WINDOW --------------------
-// Prepare the window
-async function loadingPick(){
-    currentWindow.loadFile("../template/pick.html");
-    currentWindow.webContents.on('did-finish-load', () => {
-        currentWindow.webContents.send('championList', AvailableChampionList);
-        currentWindow.webContents.send("selectedPickChampionList", selectedPickChampionList);
-        currentWindow.webContents.send("checkBox", {AutoAccept: AutoAccept, AutoPick: AutoPick, AutoBan: AutoBan});
-    });
+    currentWindow.loadFile("../template/index.html");
 };
 
-// Ipc communications
+// -------------------- PICK WINDOW --------------------
 ipcMain.handle("champion-clicked", async (event, championInfo) => {
     selectedPickChampionList.push(championInfo);
 });
@@ -184,20 +167,9 @@ ipcMain.handle("champion-clicked-remove", async (event, championInfo) => {
         };
     }
 });
-ipcMain.handle("matchPickBinary", async (event) => {
-    AutoPick = !AutoPick;
-});
+
 
 // -------------------- BAN WINDOW --------------------
-async function loadingBan(){
-    currentWindow.loadFile("../template/ban.html");
-    currentWindow.webContents.on('did-finish-load', () => {
-        currentWindow.webContents.send('championListBan', AvailableChampionList);
-        currentWindow.webContents.send("selectedBanChampionList", selectedBanChampionList);
-        currentWindow.webContents.send("checkBox", {AutoAccept: AutoAccept, AutoPick: AutoPick, AutoBan: AutoBan});
-    });
-};
-
 // Ipc communications
 ipcMain.handle("champion-clicked-ban", async (event, championInfo) => {
     selectedBanChampionList.push(championInfo);
@@ -209,12 +181,9 @@ ipcMain.handle("champion-clicked-remove-ban", async (event, championInfo) => {
         };
     }
 });
-ipcMain.handle("matchBanBinary", async (event) => {
-    AutoBan = !AutoBan;
-});
+
 
 // Champ Select Functions
-
 // Create Variables
 async function pickChampionIds (bans) {
     return new Promise((resolve, reject) => {

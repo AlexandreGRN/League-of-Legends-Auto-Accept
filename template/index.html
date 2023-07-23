@@ -6,16 +6,15 @@
     <title>Document</title>
     <link rel="stylesheet" href="./styles/nav_bar_styles.css">
     <link rel="stylesheet" href="./styles/tool_bar_styles.css">
-    <link rel="stylesheet" href="./styles/champion_list_styles.css">
     <link rel="stylesheet" href="./styles/check_button_styles.css">
+    <link rel="stylesheet" href="./styles/champion_list_styles.css">
     <script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>  
-    
-    <style>
-        
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
+
 </head>
 <body>
+    <!-- Nav Bar -->
     <div class="navigation_bar">
         <div class="top_nav_tab_list">
             <div class="close_tab nav_tab">X</div>
@@ -43,6 +42,7 @@
         </div>
     </div>
 
+    <!-- Tool Bar -->
     <div class="toolbar">
         <div class="left_toolbar_tab_list">
             <div class="back_tab toolbar_tab">Back</div>
@@ -50,13 +50,20 @@
             <div class="refresh_tab toolbar_tab">Refresh</div>
         </div>
         <div class="right_toolbar_tab_list">
-            <div class="search_tab toolbar_tab"><input type="text" placeholder="Search.."></div>
+            <div class="search_tab toolbar_tab"><input class="search_tab_ET" type="text" placeholder="Search.."></div>
         </div>
     </div>
 
-    <div class="champion_list"></div>
-    <div class="selected_champion_list"></div>
+    <!-- Pick Tab -->
+    <div class="champion_list champion_list_pick"></div>
+    <div class="selected_champion_list selected_champion_list_pick"></div>
 
+    <!-- Ban Tab -->
+    <div class="champion_list champion_list_ban"></div>
+    <div class="selected_champion_list selected_champion_list_ban"></div>
+
+    <script src="./scripts/accept_script.js"></script>
+    <script src="./scripts/pick_script.js"></script>
     <script src="./scripts/ban_script.js"></script>
 </body>
 </html>

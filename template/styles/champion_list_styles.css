@@ -27,7 +27,7 @@
 }
 
 .selected_champion_list {
-    display: flex;
+    display: none;
     position: absolute;
     width: max(9%, 130px);
     height: auto;
@@ -37,4 +37,17 @@
     border-left: 3px solid black;
     flex-direction: column;
     overflow-y: scroll;
+}
+
+.champion_list_pick {
+    display:none;
+}
+.champion_list_ban {
+    display:none;
+}
+.selected_champion_list_pick{
+    display:none;
+}
+.selected_champion_list_ban{
+    display:none;
 }
