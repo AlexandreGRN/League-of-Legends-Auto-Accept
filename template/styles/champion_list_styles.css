@@ -1,13 +1,16 @@
 .champion_list {
     display:flex;
     position: absolute;
+    width: auto;
+    height: auto;
     top: max(10%, 50px);
     left: max(110px, 16%);
     right: max(9%, 130px);
     flex-direction: row;
     flex-wrap: wrap;
     overflow-y: scroll;
-    height: 90%;
+    white-space:nowrap;
+    max-height: 90%;
 }
 
 .champion {
@@ -19,6 +22,7 @@
     margin: 10px;
     flex-direction: column;
     flex-wrap: wrap;
+    max-height: 151px;
 }
 
 .champion img {
@@ -27,7 +31,7 @@
 }
 
 .selected_champion_list {
-    display: flex;
+    display: none;
     position: absolute;
     width: max(9%, 130px);
     height: auto;
@@ -37,4 +41,17 @@
     border-left: 3px solid black;
     flex-direction: column;
     overflow-y: scroll;
+}
+
+.champion_list_pick {
+    display:none;
+}
+.champion_list_ban {
+    display:none;
+}
+.selected_champion_list_pick{
+    display:none;
+}
+.selected_champion_list_ban{
+    display:none;
 }

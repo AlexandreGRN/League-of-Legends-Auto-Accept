@@ -1,12 +1,6 @@
 $(document).ready(function() {
-    ipcRenderer.on("checkBox", (data) => {
-        $('.accept_checkbox').prop("checked", data.AutoAccept);
-        $(".pick_checkbox").prop("checked", data.AutoPick);
-        $(".ban_checkbox").prop("checked", data.AutoBan);
-    });
     $(".accept").change(function() {
         ipcRenderer.invoke("matchAcceptBinary");
-        makeRequest();
     });
     $(".pick").change(function() {
         ipcRenderer.invoke("matchPickBinary");
@@ -15,12 +9,22 @@ $(document).ready(function() {
         ipcRenderer.invoke("matchBanBinary");
     });
     $(".accept_tab").click(function() {
-        ipcRenderer.invoke("changeWindow", "accept");
+        $(".champion_list_pick").css("display", "none");
+        $(".selected_champion_list_pick").css("display", "none");
+        $(".champion_list_ban").css("display", "none");
+        $(".selected_champion_list_ban").css("display", "none");
     });
     $(".pick_tab").click(function() {
-        ipcRenderer.invoke("changeWindow", "pick");
+        $(".champion_list_pick").css("display", "flex");
+        $(".selected_champion_list_pick").css("display", "flex");
+        $(".champion_list_ban").css("display", "none");
+        $(".selected_champion_list_ban").css("display", "none");
     });
     $(".ban_tab").click(function() {
-        ipcRenderer.invoke("changeWindow", "ban");
+        $(".champion_list_ban").css("display", "flex");
+        $(".selected_champion_list_ban").css("display", "flex");
+        $(".champion_list_pick").css("display", "none");
+        $(".selected_champion_list_pick").css("display", "none");
     });
 });
+
