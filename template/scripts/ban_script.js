@@ -13,10 +13,10 @@ async function makeChampionCardBan() {
         // Champion card click event
         $("#" + champName + "_ban").click(function(){
             if ($("#" + $(this).attr("id") + "_selected").length == 0) {
-                ipcRenderer.invoke("champion-clicked", {championName: $(this).attr("id"), championImageUrl: $(this).children("img").attr("src")});
+                ipcRenderer.invoke("champion-clicked-ban", {championName: $(this).attr("id").split("_")[0], championImageUrl: $(this).children("img").attr("src")});
                 $(".selected_champion_list_ban").append("<div id='" + $(this).attr("id") + "_selected" + "' class='champion'><img src='" + $(this).children("img").attr("src") + "'><p>" + ($(this).attr("id")).split("_")[0] + "</p></div>");
                 $("#" + $(this).attr("id") + "_selected").click(function(){
-                    ipcRenderer.invoke("champion-clicked-remove", {championName: $(this).attr("id"), championImageUrl: $(this).children("img").attr("src")});
+                    ipcRenderer.invoke("champion-clicked-ban-remove", {championName: $(this).attr("id").split("_")[0], championImageUrl: $(this).children("img").attr("src")});
                     $(this).remove();
                 });
             };

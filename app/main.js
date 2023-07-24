@@ -8,9 +8,9 @@ const https = require("https");
 // Variables
 var selectedPickChampionList = [];
 var selectedBanChampionList = [];
-var AutoAccept = true;
-var AutoPick = true;
-var AutoBan = true;
+var AutoAccept = false;
+var AutoPick = false;
+var AutoBan = false;
 var AvailableChampionList = [];
 var AllBannableChampionsList = [];
 var PUUID = 0;
@@ -72,7 +72,7 @@ async function request(url, method, body = "") {
 function createWindow (htmlFile) {
     // Create the window
     currentWindow = new BrowserWindow({
-        title: "Loading",
+        title: "LoL Auto Accept",
         width: 1500,
         height: 1000,
         webPreferences: {
@@ -157,10 +157,10 @@ async function loadingAccept() {
 };
 
 // -------------------- PICK WINDOW --------------------
-ipcMain.handle("champion-clicked", async (event, championInfo) => {
+ipcMain.handle("champion-clicked-pick", async (event, championInfo) => {
     selectedPickChampionList.push(championInfo);
 });
-ipcMain.handle("champion-clicked-remove", async (event, championInfo) => {
+ipcMain.handle("champion-clicked-pick-remove", async (event, championInfo) => {
     for (i in selectedPickChampionList) {
         if (selectedPickChampionList[i].championName + "_selected" == championInfo.championName) {
             selectedPickChampionList.splice(i, 1);
@@ -174,7 +174,7 @@ ipcMain.handle("champion-clicked-remove", async (event, championInfo) => {
 ipcMain.handle("champion-clicked-ban", async (event, championInfo) => {
     selectedBanChampionList.push(championInfo);
 });
-ipcMain.handle("champion-clicked-remove-ban", async (event, championInfo) => {
+ipcMain.handle("champion-clicked-ban-remove", async (event, championInfo) => {
     for (i in selectedBanChampionList) {
         if (selectedBanChampionList[i].championName + "_selected" == championInfo.championName) {
             selectedBanChampionList.splice(i, 1);
@@ -285,7 +285,7 @@ async function inChampSelect () {
             var action = personalActions[i];
             var banChampionId = await banChampionIds(bans);
             if (banChampionId == 0 && banChampionId == undefined) {return 0;}
-            requestBody = await makeBanRequestBody(action, banChampionId).catch((error) => {return 0});
+            requestBody = await makeBanRequestBody(action, banChampionId).catch((error) => {console.log(error);return 0});
             if (requestBody != 0) {
                 await request("/lol-champ-select/v1/session/actions/" + action.id, "PATCH", requestBody).catch((error) => {return 0});
             }
@@ -296,7 +296,7 @@ async function inChampSelect () {
             var action = personalActions[i];
             var pickChampionId = await pickChampionIds(bans);
             if (pickChampionId == 0 && pickChampionId == undefined) {return 0;}
-            requestBody = await makePickRequestBody(action, pickChampionId).catch((error) => {return 0});
+            requestBody = await makePickRequestBody(action, pickChampionId).catch((error) => {console.log(error);return 0});
             if (requestBody != 0) {
                 await request("/lol-champ-select/v1/session/actions/" + action.id, "PATCH", requestBody).catch((error) => {return 0});
             }
