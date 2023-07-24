@@ -136,16 +136,21 @@ ipcMain.handle("loadingFinished", (event, championListFinish) => {
     loadingAccept();
 });
 ipcMain.handle("checkStatus", async (event) => {
-    while(status != "InProgress") {
-        status = await request("/lol-gameflow/v1/gameflow-phase", "GET")
-        if (status == undefined) {return 0;}
-        if (status == "ReadyCheck" && AutoAccept) {
-            request("/lol-lobby-team-builder/v1/ready-check/accept", "POST");
-        };
-        if (status == "ChampSelect" && (AutoPick || AutoBan)) {
-            inChampSelect();
+    while(true) {
+        status = await request("/lol-gameflow/v1/gameflow-phase", "GET");
+        if (status != "InProgress"){
+            if (status == undefined) {return 0;}
+            if (status == "ReadyCheck" && AutoAccept) {
+                request("/lol-lobby-team-builder/v1/ready-check/accept", "POST");
+            };
+            if (status == "ChampSelect" && (AutoPick || AutoBan)) {
+                inChampSelect();
+            }
+            await sleep(1000);
         }
-        await sleep(2000);
+        if (status == "InProgress") {
+            await sleep(15000);
+        }
     }
 });
 
