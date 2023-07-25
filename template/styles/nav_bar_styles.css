@@ -49,6 +49,18 @@ body {
 }
 
 .nav_tab:hover{
-    color: aqua;
+    color: #7b7b7b;
     transition: all 0.3s ease-in-out;
+}
+
+.accept_tab{
+    color: white;
+}
+
+.pick_tab{
+    color: white;
+}
+
+.ban_tab{
+    color: white;
 }

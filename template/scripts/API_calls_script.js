@@ -1,5 +1,9 @@
 var championList = [];
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function getChampionsList() {
     var a = await axios.get('https://ddragon.leagueoflegends.com/cdn/13.13.1/data/en_US/champion.json');
     return a.data.data;
@@ -26,9 +30,21 @@ async function makeChampionInfosList() {
     return championsInfos;
 };
 
+async function errorMSG() {
+    await sleep(5000);
+    $('.loader').css("top", "61%");
+    await sleep(500);
+    $('#main').css("display", "table");
+    
+};
+
 $(document).ready(async function() {
+    errorMSG();
     championList = await makeChampionInfosList();
-    ipcRenderer.invoke("checkStatus");
-    ipcRenderer.invoke("loadingChampions", championList);
-    ipcRenderer.invoke('loadingFinished');
+    ipcRenderer.invoke("testLaunched");
+    ipcRenderer.on("isLaunched", (event, data) => {
+        ipcRenderer.invoke("checkStatus");
+        ipcRenderer.invoke("loadingChampions", championList);
+        ipcRenderer.invoke('loadingFinished');
+    });
 });

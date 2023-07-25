@@ -4,20 +4,60 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        html{
-            width: 100%;
-            height: 100vh;
-            background-image: url("./images/League_of_Legends_logo_PNG3.png");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+        * {
             overflow: hidden;
         }
+        #main{
+            font-family: 'Lato', sans-serif;
+            color: #888;
+            display: none;
+            width: 100%;
+            height: 100vh;
+            text-align: center;
+            transition: all 0.5s ease-in-out;
+        }
+        
+        .fof{
+              display: table-cell;
+              vertical-align: middle;
+        }
+        
+        .fof h1{
+              font-size: 50px;
+              display: inline-block;
+              padding-right: 12px;
+              animation: type .5s alternate infinite;
+        }
+        
+        @keyframes type{
+              from{box-shadow: inset -3px 0px 0px #888;}
+              to{box-shadow: inset -3px 0px 0px transparent;}
+        }
+        .loader {
+            border: 16px solid #f3f3f3; /* Light grey */
+            border-top: 16px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 8%;
+            animation: spin 2s linear infinite;
+            position: absolute;
+            top: 41%;
+            left: 46%;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease-in-out;
+          }
+          
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
     </style>
     <script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js"></script>
 </head>
 <body>
+    <div class="loader"></div>
+    <div id="main"><div class="fof"><h1>Please make sure LoL Client is launched</h1></div></div>
     <script src="./scripts/API_calls_script.js"></script>
+    <script>$('.loader').css('height', $('.loader').width());</script>
 </body>
 </html>
