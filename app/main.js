@@ -86,11 +86,9 @@ function createWindow (htmlFile) {
 };
 app.whenReady().then(async () => {
     // Create the window
-    response = await request("/lol-summoner/v1/current-summoner", "GET").then((response) => {
-        if (response == undefined){return 0;}
-        PUUID = response.summonerId;
-    });    
+    
     createWindow("../template/loading.html");
+
     // MacOS Requirements (Needs to create the window again if necessary)
     app.on("activate", () => {
         if (BrowserWindow.getAllWindows().length === 0) {
@@ -115,9 +113,23 @@ ipcMain.handle("matchBanBinary", async (event) => {
     AutoBan = !AutoBan;
 });
 
+ipcMain.handle("testLaunched", async (event) => {
+    while (PUUID == 0) {
+        response = await request("/lol-summoner/v1/current-summoner", "GET").then((response) => {
+            if (response != undefined && response != 0){
+                PUUID = response.summonerId;
+                currentWindow.webContents.send("isLaunched", true);
+            }
+        });
+        await sleep(1000);
+    }
+});
 // -------------------- LOADING --------------------
 ipcMain.handle("loadingChampions", async (event, championList) => {
-    response = await request(`/lol-champions/v1/inventories/${PUUID}/champions-minimal`, "GET");
+    response = 0;
+    while (response == 0 || response == undefined) {
+        response = await request(`/lol-champions/v1/inventories/${PUUID}/champions-minimal`, "GET");
+    };
     response.sort((a, b) => a.alias.localeCompare(b.alias));
     for (i in response) {
         for (j in championList) {
