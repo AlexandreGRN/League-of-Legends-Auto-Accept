@@ -16,7 +16,7 @@ var AllBannableChampionsList = [];
 var PUUID = 0;
 let status;
 let currentWindow;
-
+var patchVersion = "13.20.1";
 
 // MISC FUNCTIONS
 // Sleep function
@@ -115,10 +115,12 @@ ipcMain.handle("matchBanBinary", async (event) => {
 
 ipcMain.handle("testLaunched", async (event) => {
     while (PUUID == 0) {
-        response = await request("/lol-summoner/v1/current-summoner", "GET").then((response) => {
+        response = await request("/lol-summoner/v1/current-summoner", "GET").then(async(response) => {
             if (response != undefined && response != 0){
                 PUUID = response.summonerId;
-                currentWindow.webContents.send("isLaunched", true);
+                response = await request("/lol-patch/v1/game-version", "GET");
+                patchVersion = response.split(".")[0] + "." + response.split(".")[1] + ".1";
+                currentWindow.webContents.send("isLaunched", patchVersion);
             }
         });
         await sleep(1000);
@@ -144,7 +146,7 @@ ipcMain.handle("loadingChampions", async (event, championList) => {
     currentWindow.webContents.send("championListPick", AvailableChampionList);
     currentWindow.webContents.send("championListBan", AllBannableChampionsList);
 });
-ipcMain.handle("loadingFinished", (event, championListFinish) => {
+ipcMain.handle("loadingFinished", async(event, championListFinish) => {
     loadingAccept();
 });
 ipcMain.handle("checkStatus", async (event) => {
@@ -158,7 +160,7 @@ ipcMain.handle("checkStatus", async (event) => {
             if (status == "ChampSelect" && (AutoPick || AutoBan)) {
                 inChampSelect();
             }
-            await sleep(1000);
+            await sleep(100);
         }
         if (status == "InProgress") {
             await sleep(15000);
@@ -202,7 +204,7 @@ ipcMain.handle("champion-clicked-ban-remove", async (event, championInfo) => {
 
 // Champ Select Functions
 // Create Variables
-async function pickChampionIds (bans) {
+async function pickChampionIds (bans, intentList) {
     return new Promise((resolve, reject) => {
         pickTargetIds = [];
         for (i in selectedPickChampionList) {
@@ -213,14 +215,15 @@ async function pickChampionIds (bans) {
             }
         }
         for (i in pickTargetIds){
-            if (!bans.includes(pickTargetIds[i])) {
+            // if champion is not banned and not already picked
+            if (!bans.includes(pickTargetIds[i] && !intentList.includes(banTargetIds[i]))) {
                 resolve(pickTargetIds[i]);
             }
         }
         resolve(0);
     });
 }
-async function banChampionIds (bans) {
+async function banChampionIds (bans, intentList) {
     return new Promise((resolve, reject) => {
         if (response == undefined) {return 0;}
         banTargetIds = [];
@@ -232,7 +235,8 @@ async function banChampionIds (bans) {
             }
         }
         for (i in banTargetIds){
-            if (!bans.includes(banTargetIds[i])) {
+            // if champion is not banned and not already picked
+            if (!bans.includes(banTargetIds[i]) && !intentList.includes(banTargetIds[i])) {
                 resolve(banTargetIds[i]);
             }
         }
@@ -251,7 +255,7 @@ async function getPersonalActions (actions, cellId) {
     }
     return personalActions;
 }
-async function getBans (bans) {
+async function getBansAndPicks (bans) {
     var bansList = [];
     for (i in bans) {
         if (Array.isArray(bans[i])) {
@@ -287,6 +291,14 @@ async function makePickRequestBody (action, championId) {
     return requestBody;
 }
 
+async function intentPickList(myTeam){
+    intentList = [];
+    myTeam.forEach((player) => {
+        intentList.push(player.championPickIntent)
+    });
+    return intentList;
+}
+
 async function inChampSelect () {
     //Get infos
     response = await request("/lol-champ-select/v1/session", "GET");
@@ -295,12 +307,13 @@ async function inChampSelect () {
     var actions = response.actions;
     var cellId = response.localPlayerCellId;
     var personalActions = await getPersonalActions(actions, cellId);
-    var bans = await getBans(response.bans);
+    var bans = await getBansAndPicks(response.bans);
     for (i in personalActions) {
         // Ban phase
         if (personalActions[i].type == "ban" && personalActions[i].completed == false && AutoBan) {
             var action = personalActions[i];
-            var banChampionId = await banChampionIds(bans);
+            var intentList = await intentPickList(response.myTeam);
+            var banChampionId = await banChampionIds(bans, intentList);
             if (banChampionId == 0 && banChampionId == undefined) {return 0;}
             requestBody = await makeBanRequestBody(action, banChampionId).catch((error) => {console.log(error);return 0});
             if (requestBody != 0) {
@@ -311,7 +324,7 @@ async function inChampSelect () {
         // Pick phase
         else if (personalActions[i].type == "pick" && personalActions[i].completed == false && AutoPick) {
             var action = personalActions[i];
-            var pickChampionId = await pickChampionIds(bans);
+            var pickChampionId = await pickChampionIds(bans, intentList);
             if (pickChampionId == 0 && pickChampionId == undefined) {return 0;}
             requestBody = await makePickRequestBody(action, pickChampionId).catch((error) => {console.log(error);return 0});
             if (requestBody != 0) {

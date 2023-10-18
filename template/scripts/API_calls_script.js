@@ -1,15 +1,15 @@
 var championList = [];
-
+var patchVersion = "13.20.1";
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function getChampionsList() {
-    var a = await axios.get('https://ddragon.leagueoflegends.com/cdn/13.13.1/data/en_US/champion.json');
+    var a = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/data/en_US/champion.json`);
     return a.data.data;
 };
 async function getChampionImageUrl(ChampName){
-    var a = await axios.get('https://ddragon.leagueoflegends.com/cdn/13.13.1/img/champion/' + ChampName + '.png');
+    var a = await axios.get(`https://ddragon.leagueoflegends.com/cdn/${patchVersion}/img/champion/` + ChampName + '.png');
     return a.config.url;
 };
 async function getChampionNames() {
@@ -40,9 +40,10 @@ async function errorMSG() {
 
 $(document).ready(async function() {
     errorMSG();
-    championList = await makeChampionInfosList();
     ipcRenderer.invoke("testLaunched");
-    ipcRenderer.on("isLaunched", (event, data) => {
+    ipcRenderer.on("isLaunched", async(data) => {
+        patchVersion = data;
+        championList = await makeChampionInfosList();
         ipcRenderer.invoke("checkStatus");
         ipcRenderer.invoke("loadingChampions", championList);
         ipcRenderer.invoke('loadingFinished');
