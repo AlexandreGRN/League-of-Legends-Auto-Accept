@@ -1,3 +1,4 @@
+// npx electron-packager . lol --platform=win32 --arch=x64
 // Import
 const {app, BrowserWindow, ipcMain, ipcRenderer, webContents, protocol} = require("electron");
 const path = require("path");
@@ -291,10 +292,12 @@ async function makePickRequestBody (action, championId) {
     return requestBody;
 }
 
-async function intentPickList(myTeam){
-    intentList = [];
+async function intentPickList(myTeam, cellId){
+    intentList = [-69];
     myTeam.forEach((player) => {
-        intentList.push(player.championPickIntent)
+        if (player.cellId != cellId) {
+            intentList.push(player.championPickIntent)
+        }
     });
     return intentList;
 }
@@ -312,7 +315,7 @@ async function inChampSelect () {
         // Ban phase
         if (personalActions[i].type == "ban" && personalActions[i].completed == false && AutoBan) {
             var action = personalActions[i];
-            var intentList = await intentPickList(response.myTeam);
+            var intentList = await intentPickList(response.myTeam, cellId);
             var banChampionId = await banChampionIds(bans, intentList);
             if (banChampionId == 0 && banChampionId == undefined) {return 0;}
             requestBody = await makeBanRequestBody(action, banChampionId).catch((error) => {console.log(error);return 0});
@@ -324,6 +327,7 @@ async function inChampSelect () {
         // Pick phase
         else if (personalActions[i].type == "pick" && personalActions[i].completed == false && AutoPick) {
             var action = personalActions[i];
+            var intentList = await intentPickList(response.myTeam, cellId);
             var pickChampionId = await pickChampionIds(bans, intentList);
             if (pickChampionId == 0 && pickChampionId == undefined) {return 0;}
             requestBody = await makePickRequestBody(action, pickChampionId).catch((error) => {console.log(error);return 0});
