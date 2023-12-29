@@ -39,13 +39,14 @@ async function errorMSG() {
 };
 
 $(document).ready(async function() {
+    // Setup the loading screen
     errorMSG();
-    ipcRenderer.invoke("testLaunched");
-    ipcRenderer.on("isLaunched", async(data) => {
+    ipcRenderer.invoke("testLolClientLaunched");
+
+    // Get the champions list
+    ipcRenderer.on("LolClientIsLaunched", async(data) => {
         patchVersion = data;
         championList = await makeChampionInfosList();
-        ipcRenderer.invoke("checkStatus");
         ipcRenderer.invoke("loadingChampions", championList);
-        ipcRenderer.invoke('loadingFinished');
     });
 });
